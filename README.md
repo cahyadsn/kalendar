@@ -5,9 +5,9 @@
 [![Falak: Ephemeris Jean Meeus](https://img.shields.io/badge/Falak-Ephemeris%20Jean%20Meeus-emerald.svg)](#metode-hisab--algoritma-falak)
 [![Print Ready](https://img.shields.io/badge/UI-Print%20Ready%20%26%20Responsive-blue.svg)](#fitur-utama)
 
-Aplikasi web mandiri (*standalone*) berbasis PHP murni untuk mengenerate **Kalender Tahunan Masehi, Kalender Hijriyah, Weton / Pasaran Jawa**, serta **Jadwal Waktu Sholat dan Imsakiyah Ramadhan** berakurasi tinggi. 
+Aplikasi web mandiri (*standalone*) berbasis PHP murni untuk mengenerate **Kalender Tahunan Masehi, Kalender Hijriyah, Weton / Pasaran Jawa, Penanggalan Tradisional Cina (Imlek, Shio & Siklus 60-Tahun Elemen)**, serta **Jadwal Waktu Sholat dan Imsakiyah Ramadhan** berakurasi tinggi. 
 
-Perhitungan astronomis mengadopsi algoritma hisab falak **Ephemeris Jean Meeus** dan rujukan kaidah **Kitab Tsamarotul Fikar** (karya KH. Ibnu Zahid Abdo el-Moeid) yang diadaptasi dari lembar kerja hisab falakiyah madrasah/pesantren.
+Perhitungan astronomis mengadopsi algoritma hisab falak **Ephemeris Jean Meeus** dan rujukan kaidah **Kitab Tsamarotul Fikar** (karya KH. Ibnu Zahid Abdo el-Moeid) yang diadaptasi dari lembar kerja hisab falakiyah madrasah/pesantren, serta algoritma penanggalan Lunisolar Cina mandiri berbasis lookup table bitwise astronomis 1900–2100.
 
 ---
 
@@ -28,10 +28,11 @@ Perhitungan astronomis mengadopsi algoritma hisab falak **Ephemeris Jean Meeus**
 
 ## ✨ Fitur Utama
 
-1. **Integrasi Tiga Sistem Penanggalan Sekaligus**:
+1. **Integrasi Empat Sistem Penanggalan Sekaligus**:
    - **Kalender Masehi (Gregorian)**: 12 Bulan lengkap dengan jumlah hari kabisat otomatis.
    - **Kalender Hijriyah Astronomis**: Konversi berbasis Julian Day Number siklus 30 tahun (kabisaah urfi) dengan opsi koreksi hisab/ru'yah (-2 s/d +2 hari).
    - **Siklus Pasaran Jawa (Weton Pancawara)**: Perhitungan presisi untuk 5 pasaran: *Legi, Pahing, Pon, Wage, Kliwon*.
+   - **Penanggalan Tradisional Cina (Lunisolar Imlek & Shio)**: Hisab kalender Tionghoa mandiri rentang tahun 1900–2100 tanpa library eksternal, penentuan tanggal & bulan (lengkap dengan deteksi bulan kabisat *run yue*), 12 Shio hewan zodiak, dan kombinasi 5 elemen siklus 60-tahunan *Jiazi* (Kayu, Api, Tanah, Logam, Air).
 
 2. **Jadwal Sholat Harian Lengkap & Akurat**:
    - Menghitung 8 waktu penting: **Imsak, Subuh, Terbit, Dhuha, Dhuhur, Ashar, Maghrib, dan Isya**.
@@ -70,7 +71,7 @@ Aplikasi memiliki 3 mode tampilan utama yang dapat diakses melalui tab navigasi 
 
 | Mode | Parameter | Deskripsi |
 | :--- | :--- | :--- |
-| **Kalender 12 Bulan** | `?view=calendar` | Grid kalender 12 bulan elegan menampilkan tanggal Masehi, Hijriyah, Pasaran Jawa, tanda hari libur nasional (merah), serta hari besar Islam (hijau). |
+| **Kalender 12 Bulan** | `?view=calendar` | Grid kalender 12 bulan elegan menampilkan tanggal Masehi, Hijriyah, Pasaran Jawa, penanggalan Imlek & Shio, tanda hari libur nasional (merah), serta hari besar Islam (hijau). |
 | **Jadwal Sholat Tahunan** | `?view=table` | Tabel jadwal sholat harian per bulan berisi waktu Imsak, Subuh, Terbit, Dhuha, Dhuhur, Ashar, Maghrib, Isya, dan catatan agenda hari libur. |
 | **Imsakiyah Ramadhan** | `?view=ramadhan` | Format khusus lembar Jadwal Imsakiyah 30 hari penuh bulan Ramadhan dengan penyorotan waktu Imsak dan waktu Maghrib (buka puasa). |
 
@@ -88,13 +89,14 @@ kalendar/
 │   └── data/
 │       └── cities.json          # Database koordinat kota (Lintang, Bujur, Elevasi, TZ)
 ├── inc/
-│   └── functions.php            # Engine kalkulasi falakiyah, rumus Jean Meeus & weton
+│   └── functions.php            # Engine hisab falakiyah (Meeus, Weton, Lunisolar Cina & Shio)
 ├── templates/
 │   ├── widget-prayer.php        # Template kartu widget real-time clock & countdown sholat
-│   ├── view-calendar.php        # Template antarmuka kalender grid 12 bulan Masehi & Hijriyah
+│   ├── view-calendar.php        # Template antarmuka kalender grid 12 bulan (Masehi, Hijriyah & Imlek)
 │   ├── view-table.php           # Template antarmuka tabel jadwal waktu sholat
 │   └── view-ramadhan.php        # Template antarmuka jadwal imsakiyah 30 hari Ramadhan
 ├── tests/
+│   ├── test_chinese_calendar.php    # Unit test engine penanggalan Cina & Shio 60 tahun
 │   ├── test_ics_generator.php       # Unit test generator iCalendar RFC 5545
 │   ├── test_prayer_widget.php       # Unit test logika waktu sholat real-time widget
 │   └── test_templates_rendering.php # Integration test rendering template & zero warnings
@@ -139,94 +141,79 @@ kalendar/
 1. Salin atau buat symlink folder `kalendar` ke dalam folder web root web server Anda:
    - XAMPP: `C:/xampp/htdocs/kalendar`
    - Laragon: `C:/laragon/www/kalendar`
-2. Pastikan web server Apache aktif.
-3. Buka browser dan buka `http://localhost/kalendar`.
+2. Pastikan service Apache/Nginx telah berjalan.
+3. Buka browser dan arahkan ke:
+   ```text
+   http://localhost/kalendar/
+   ```
 
 ---
 
-## 🔧 Parameter URL & Opsi Konfigurasi
+## 🎛️ Parameter URL & Opsi Konfigurasi
 
-Anda dapat menyesuaikan tampilan dan perhitungan melalui parameter query URL:
+Anda dapat memfilter tampilan atau mengintegrasikan kalender via URL Query Parameters:
 
-| Parameter | Tipe Data | Nilai Bawaan | Keterangan |
-| :--- | :--- | :--- | :--- |
-| `year` | integer | Tahun saat ini | Menentukan tahun Masehi yang dihitung (rentang: `1900` - `2100`). |
-| `city` | string | `PACITAN` | Nama markas/kota yang terdaftar di `cities.json` (misal: `JAKARTA`, `SURABAYA`, `SEMARANG`, `BANDUNG`, `MEDAN`). |
-| `month` | integer | `0` | Filter bulan (`0` = semua 12 bulan, `1` - `12` = bulan tertentu saja). |
-| `view` | string | `calendar` | Pilihan mode tampilan: `calendar`, `table`, atau `ramadhan`. |
-| `h_adj` | integer | `0` | Koreksi tanggal Hijriyah: `-2`, `-1`, `0`, `+1`, atau `+2` hari untuk penyesuaian hasil ru'yatul hilal. |
-| `ihtiyat` | integer | `1` | Menit kehati-hatian untuk Subuh, Terbit, Dhuha, Ashar, Maghrib, Isya. |
-| `ihtiyat_dhuhur` | integer | `4` | Menit kehati-hatian khusus Dhuhur (waktu zawal transit ditambah pengaman). |
-| `custom_lat` | float | *(opsional)* | Override garis lintang Markas (desimal, misal: `-7.2575`). |
-| `custom_lon` | float | *(opsional)* | Override garis bujur Markas (desimal, misal: `112.7521`). |
-| `custom_tz` | float | *(opsional)* | Override zona waktu (misal: `7` untuk WIB, `8` untuk WITA, `9` untuk WIT). |
-| `custom_elev` | float | *(opsional)* | Override ketinggian tempat di atas permukaan laut (meter dpl). |
-
-**Contoh URL:**
-```text
-http://localhost:8000/?city=SURABAYA&year=2026&view=ramadhan&h_adj=0
-```
+| Parameter | Tipe | Default | Contoh | Keterangan |
+| :--- | :--- | :--- | :--- | :--- |
+| `city` | string | `PACITAN` | `?city=JAKARTA` | Kode ID kota sesuai daftar di `cities.json`. |
+| `year` | integer | Tahun saat ini | `?year=2026` | Tahun Masehi yang ingin ditampilkan. |
+| `month` | integer | `0` (Semua) | `?month=3` | Filter bulan spesifik (1–12), atau `0` untuk seluruh tahun. |
+| `view` | string | `calendar` | `?view=table` | Mode tampilan: `calendar`, `table`, atau `ramadhan`. |
+| `h_adjust` | integer | `0` | `?h_adjust=-1` | Koreksi hisab tanggal Hijriyah (-2 s/d +2 hari). |
+| `ihtiyat` | integer | `1` | `?ihtiyat=2` | Menit pengaman waktu sholat umum (Subuh, Ashar, Maghrib, Isya). |
+| `ihtiyat_dhuhur` | integer | `4` | `?ihtiyat_dhuhur=5` | Menit pengaman waktu Dhuhur setelah istiwa/transit. |
+| `custom_lat` | float | - | `?custom_lat=-8.15` | Koordinat Lintang kustom (jika markas tidak ada di database). |
+| `custom_lon` | float | - | `?custom_lon=111.08`| Koordinat Bujur kustom. |
+| `custom_elev` | float | `0` | `?custom_elev=50` | Ketinggian markas dari permukaan laut dalam satuan meter (mdpl). |
+| `custom_tz` | float | `7` | `?custom_tz=7` | Zona Waktu GMT kustom (7=WIB, 8=WITA, 9=WIT). |
 
 ---
 
 ## 📡 Penggunaan REST API & Ekspor Data
 
 ### 1. Unduh File CSV
-Untuk mengunduh jadwal waktu sholat dan kalender dalam format CSV yang dapat dibuka di Microsoft Excel:
+Untuk mengunduh tabel jadwal dalam format `.csv`:
 ```http
-GET /index.php?action=export_csv&city=PACITAN&year=2026&month=3
-```
-Header file CSV yang dihasilkan:
-```csv
-Tanggal Masehi,Tanggal Hijriyah,Hari & Pasaran,Imsak,Subuh,Terbit,Dhuha,Dhuhur,Ashar,Maghrib,Isya,Catatan / Hari Libur
+GET /index.php?action=export_csv&city=SURABAYA&year=2026&month=0
 ```
 
-### 2. Endpoint REST JSON API
-Untuk integrasi dengan sistem lain, tambahkan parameter `action=api`:
+### 2. Konsumsi RESTful JSON API
+Untuk mengintegrasikan data hisab ke aplikasi pihak ketiga:
 ```http
-GET /index.php?action=api&city=JAKARTA&year=2026&month=3
+GET /index.php?action=api&city=BANDUNG&year=2026&month=3
 ```
-
-#### Contoh Format Respons JSON:
+Contoh respon JSON:
 ```json
 {
-  "year": 2026,
   "city": {
-    "name": "JAKARTA",
-    "country": "INDONESIA",
-    "lat": -6.1754,
-    "lon": 106.8272,
-    "tz": 7.0,
-    "elev": 10.0
+    "name": "KAB. BANDUNG",
+    "lat": -7.025,
+    "lon": 107.519722,
+    "elev": 700,
+    "tz": 7
   },
+  "year": 2026,
+  "month": 3,
   "qibla": {
-    "azimuth": 295.15,
-    "dms": "295° 08' 54.0\"",
-    "barat_ke_utara": "25.1° B-U"
+    "azimuth_deg": 295.12,
+    "azimuth_dms": "295° 7' 12\"",
+    "deviation_bu": "25° 7' 12\" B-U"
   },
-  "schedule": [
+  "data": [
     {
-      "date_masehi": "2026-03-01",
-      "date_hijri": {
-        "day": 12,
-        "month": 9,
-        "year": 1447,
-        "month_name": "Ramadhan",
-        "formatted": "12 Ramadhan 1447 H"
-      },
-      "hari": "Ahad",
-      "pasaran": "Pahing",
-      "sholat": {
-        "imsak": "04:33",
-        "subuh": "04:43",
-        "terbit": "05:58",
-        "dhuha": "06:23",
-        "dhuhur": "12:09",
-        "ashar": "15:13",
-        "maghrib": "18:15",
-        "isya": "19:24",
-        "delta": -7.319,
-        "eot": -12.3
+      "date": "2026-03-01",
+      "day_name": "Ahad",
+      "pasaran": "Wage",
+      "hijri": "11 Ramadhan 1447 H",
+      "prayer_times": {
+        "imsak": "04:28",
+        "subuh": "04:38",
+        "terbit": "05:51",
+        "dhuha": "06:14",
+        "dhuhur": "12:05",
+        "ashar": "15:08",
+        "maghrib": "18:13",
+        "isya": "19:22"
       },
       "event": null
     }
@@ -287,6 +274,11 @@ Perhitungan dalam berkas [`inc/functions.php`](inc/functions.php) dirancang deng
 
 5. **Sudut Waktu (*Hour Angle* / $t$)**:
    $$\cos t = \frac{\sin h - \sin\phi \sin\delta}{\cos\phi \cos\delta}$$
+
+6. **Penanggalan Tradisional Lunisolar Cina (Imlek & Siklus Jiazi)**:
+   - **Lookup Table Bitwise 1900–2100**: Memetakan struktur 12 bulan reguler (29/30 hari) dan keberadaan bulan kabisat (*run yue* / *leap month*) dalam format bitmask 16-20 bit per tahun secara mandiri tanpa dependensi eksternal.
+   - **Siklus 60-Tahunan (*Sexagenary Jiazi*)**: Menghitung kombinasi 10 Batang Surgawi (*Heavenly Stems*) dan 12 Cabang Bumi (*Earthly Branches*) untuk menentukan Shio hewan (Tikus s/d Babi) dan 5 Elemen (Kayu, Api, Tanah, Logam, Air) secara deterministik.
+   - **Integrasi Antarmuka**: Seluruh tanggal kalender grid dilengkapi penanda angka Imlek, badge awal bulan (*Ce It*), serta tooltip interaktif yang memuat informasi lengkap tanggal Imlek, Shio, dan elemen tahun.
 
 ---
 
