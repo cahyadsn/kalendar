@@ -17,11 +17,33 @@
         $hijriRangeStr = ($hFirst['month_name'] === $hLast['month_name'])
             ? $hFirst['month_name'] . ' ' . $hFirst['year'] . ' H'
             : $hFirst['month_name'] . ' - ' . $hLast['month_name'] . ' ' . $hLast['year'] . ' H';
+
+        // Informasi Imlek dalam bulan ini
+        $cFirst = getChineseLunisolarDate($selectedYear, $m, 1);
+        $cLast = getChineseLunisolarDate($selectedYear, $m, $daysInMonth);
+        $chineseYearStr = '';
+        $chineseTooltip = '';
+        if ($cFirst && $cLast) {
+            if ($cFirst['year'] === $cLast['year']) {
+                $chineseYearStr = $cFirst['year'] . ' 🏮 Shio ' . $cFirst['shio'] . ' (' . $cFirst['elemen'] . ')';
+                $chineseTooltip = 'Tahun Imlek ' . $cFirst['year'] . ' - ' . $cFirst['nama_tahun'];
+            } else {
+                $chineseYearStr = $cFirst['year'] . '/' . $cLast['year'] . ' 🏮 Shio ' . $cLast['shio'] . ' (' . $cLast['elemen'] . ')';
+                $chineseTooltip = 'Pergantian Tahun Imlek: ' . $cFirst['year'] . ' (' . $cFirst['shio'] . ') ke ' . $cLast['year'] . ' (' . $cLast['nama_tahun'] . ')';
+            }
+        }
     ?>
         <div class="month-card">
             <div class="month-header">
-                <span class="month-name"><?= $namaBulanMasehi[$m] ?> <?= $selectedYear ?></span>
-                <span class="month-hijri-span"><?= $hijriRangeStr ?></span>
+                <div>
+                    <span class="month-name"><?= $namaBulanMasehi[$m] ?> <?= $selectedYear ?></span>
+                    <span class="month-hijri-span"><?= $hijriRangeStr ?></span>
+                </div>
+                <?php if ($chineseYearStr): ?>
+                    <span class="month-chinese-span" title="<?= htmlencode($chineseTooltip) ?>">
+                        <?= $chineseYearStr ?>
+                    </span>
+                <?php endif; ?>
             </div>
             <div class="days-header">
                 <div>AHD</div>
@@ -45,6 +67,7 @@
                     $dateStr = sprintf('%04d-%02d-%02d', $selectedYear, $m, $d);
                     $hp = getHariPasaran($selectedYear, $m, $d, $activeCity['tz']);
                     $hijri = getHijriDate($selectedYear, $m, $d, $hijriAdjustment);
+                    $chinese = getChineseLunisolarDate($selectedYear, $m, $d);
                     $isSunday = ($hp['day_index'] === 0);
                     $isToday = ($dateStr === $todayStr);
                     $isHoliday = isset($holidays[$dateStr]);
@@ -54,14 +77,39 @@
                     if ($isSunday) $cellClasses[] = 'sunday';
                     if ($isHoliday) $cellClasses[] = 'holiday';
                     if ($isToday) $cellClasses[] = 'today';
+                    if ($chinese && $chinese['day'] === 1) $cellClasses[] = 'lunar-first-day';
+
+                    // Tooltip interaktif yang komprehensif
+                    $tooltipParts = [
+                        $hp['lengkap'],
+                        $d . ' ' . $namaBulanMasehi[$m] . ' ' . $selectedYear . ' M',
+                        $hijri['formatted']
+                    ];
+                    if ($chinese) {
+                        $tooltipParts[] = 'Imlek: ' . $chinese['formatted'] . ' (' . $chinese['day_name'] . ', Shio ' . $chinese['shio'] . ' ' . $chinese['elemen'] . ')';
+                    }
+                    if ($isHoliday) {
+                        $tooltipParts[] = '(' . $holidayInfo['name'] . ')';
+                    }
+                    $cellTooltip = implode(' | ', $tooltipParts);
                 ?>
-                    <div class="<?= implode(' ', $cellClasses) ?>" title="<?= $hp['lengkap'] ?> | <?= $hijri['formatted'] ?><?= $isHoliday ? ' ('.$holidayInfo['name'].')' : '' ?>">
+                    <div class="<?= implode(' ', $cellClasses) ?>" title="<?= htmlencode($cellTooltip) ?>">
                         <div class="day-top">
                             <span class="masehi-num"><?= $d ?></span>
-                            <span class="hijri-num"><?= $hijri['day'] ?></span>
+                            <div class="secondary-badges">
+                                <span class="hijri-num" title="Hijriyah: <?= $hijri['day'] ?> <?= $hijri['month_name'] ?>"><?= $hijri['day'] ?></span>
+                                <?php if ($chinese): ?>
+                                    <span class="lunar-num <?= ($chinese['day'] === 1) ? 'lunar-first' : '' ?>" title="Imlek: <?= $chinese['formatted'] ?>"><?= $chinese['day'] ?></span>
+                                <?php endif; ?>
+                            </div>
                         </div>
-                        <div class="pasaran-txt">
-                            <?= $hp['pasaran'] ?>
+                        <div class="day-bottom">
+                            <span class="pasaran-txt"><?= $hp['pasaran'] ?></span>
+                            <?php if ($chinese && $chinese['day'] === 1): ?>
+                                <span class="lunar-month-badge" title="Awal Bulan Imlek: <?= $chinese['month_name'] ?>">
+                                    <?= ($chinese['is_leap'] ? 'R.' : '') . $chinese['month'] ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
                         <?php if ($isHoliday): ?>
                             <div class="holiday-dot" title="<?= htmlencode($holidayInfo['name'] ?? '') ?>"></div>

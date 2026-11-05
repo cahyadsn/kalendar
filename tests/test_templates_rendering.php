@@ -49,6 +49,10 @@ assertTrue(strpos($htmlCalendar, 'id="prayer-widget"') !== false, 'Widget real-t
 assertTrue(strpos($htmlCalendar, 'calendar-grid') !== false, 'Elemen calendar-grid ter-render');
 assertTrue(strpos($htmlCalendar, 'month-card') !== false, 'Elemen month-card ter-render');
 assertTrue(strpos($htmlCalendar, 'Hari Libur Nasional & Hari Besar Islam') !== false, 'Legenda hari libur ter-render');
+assertTrue(strpos($htmlCalendar, 'month-chinese-span') !== false, 'Badge Shio & Imlek ter-render di header bulan kalender');
+assertTrue(strpos($htmlCalendar, 'lunar-num') !== false, 'Angka penanggalan Imlek ter-render pada sel tanggal');
+assertTrue(strpos($htmlCalendar, 'Shio Kuda') !== false, 'Shio tahun 2026 (Kuda) tertera pada tampilan kalender');
+assertTrue(strpos($htmlCalendar, 'secondary-badges') !== false, 'Kontainer secondary-badges ter-render');
 
 // 2. Uji Render View: Table (Jadwal Sholat Tahunan)
 echo "\nTest 2: Render View 'table' (Jakarta 2026)...\n";

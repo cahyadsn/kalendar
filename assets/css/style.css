@@ -288,6 +288,17 @@ body {
     font-weight: 600;
 }
 
+.month-chinese-span {
+    font-size: 11px;
+    color: #9a3412;
+    background: #ffedd5;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    border: 1px solid #fed7aa;
+    white-space: nowrap;
+}
+
 .days-header {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -382,6 +393,44 @@ body {
 
 .day-cell.holiday .pasaran-txt {
     color: #991b1b;
+}
+
+.secondary-badges {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.lunar-num {
+    font-size: 10px;
+    color: #b45309;
+    font-weight: 600;
+}
+
+.lunar-num.lunar-first {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.day-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.lunar-month-badge {
+    font-size: 8px;
+    color: #b91c1c;
+    background: #fee2e2;
+    border-radius: 3px;
+    padding: 0 3px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.day-cell.lunar-first-day {
+    border-bottom: 2px solid #fca5a5;
 }
 
 .holiday-dot {
@@ -494,6 +543,18 @@ body {
         border: 1px solid #999;
         box-shadow: none;
         page-break-inside: avoid;
+    }
+
+    .month-chinese-span {
+        background: none;
+        border: 1px solid #ccc;
+        color: #333;
+    }
+
+    .lunar-month-badge {
+        background: none;
+        border: 1px solid #999;
+        color: #333;
     }
 
     .data-table th, .data-table td {
