@@ -608,3 +608,228 @@ if (!function_exists('getPrayerStatusInfo')) {
         ];
     }
 }
+
+
+/**
+ * =====================================================================================
+ * FUNGSI PERHITUNGAN PENANGGALAN CINA (LUNISOLAR IMLEK, SHIO & ELEMEN)
+ * Menggunakan lookup table bitmask mandiri 1900–2100 tanpa library eksternal.
+ * =====================================================================================
+ */
+
+if (!function_exists('getChineseLunarInfo')) {
+    /**
+     * Data bitmask astronomis penanggalan lunisolar Cina tahun 1900–2100 (201 entri).
+     * Format per entri (16-20 bit):
+     * - Bit 0–3: Index bulan kabisat (1–12), 0 jika tanpa bulan kabisat
+     * - Bit 4–15: Jumlah hari 12 bulan reguler (1 = 30 hari, 0 = 29 hari)
+     * - Bit 16: Jumlah hari bulan kabisat (1 = 30 hari, 0 = 29 hari)
+     */
+    function getChineseLunarInfo() {
+        static $lunarInfo = [
+            // 1900 - 1909
+            0x04bd8, 0x04ae0, 0x0a570, 0x054d5, 0x0d260, 0x0d950, 0x16554, 0x056a0, 0x09ad0, 0x055d2,
+            // 1910 - 1919
+            0x04ae0, 0x0a5b6, 0x0a4d0, 0x0d250, 0x1d255, 0x0b540, 0x0d6a0, 0x0ada2, 0x095b0, 0x14977,
+            // 1920 - 1929
+            0x04970, 0x0a4b0, 0x0b4b5, 0x06a50, 0x06d40, 0x1ab54, 0x02b60, 0x09570, 0x052f2, 0x04970,
+            // 1930 - 1939
+            0x06566, 0x0d4a0, 0x0ea50, 0x16a95, 0x05ad0, 0x02b60, 0x186e3, 0x092e0, 0x1c8d7, 0x0c950,
+            // 1940 - 1949
+            0x0d4a0, 0x1d8a6, 0x0b550, 0x056a0, 0x1a5b4, 0x025d0, 0x092d0, 0x0d2b2, 0x0a950, 0x0b557,
+            // 1950 - 1959
+            0x06ca0, 0x0b550, 0x15355, 0x04da0, 0x0a5b0, 0x14573, 0x052b0, 0x0a9a8, 0x0e950, 0x06aa0,
+            // 1960 - 1969
+            0x0aea6, 0x0ab50, 0x04b60, 0x0aae4, 0x0a570, 0x05260, 0x0f263, 0x0d950, 0x05b57, 0x056a0,
+            // 1970 - 1979
+            0x096d0, 0x04dd5, 0x04ad0, 0x0a4d0, 0x0d4d4, 0x0d250, 0x0d558, 0x0b540, 0x0b6a0, 0x195a6,
+            // 1980 - 1989
+            0x095b0, 0x049b0, 0x0a974, 0x0a4b0, 0x0b27a, 0x06a50, 0x06d40, 0x0af46, 0x0ab60, 0x09570,
+            // 1990 - 1999
+            0x04af5, 0x04970, 0x064b0, 0x074a3, 0x0ea50, 0x06b58, 0x05ac0, 0x0ab60, 0x096d5, 0x092e0,
+            // 2000 - 2009
+            0x0c960, 0x0d954, 0x0d4a0, 0x0da50, 0x07552, 0x056a0, 0x0abb7, 0x025d0, 0x092d0, 0x0cab5,
+            // 2010 - 2019
+            0x0a950, 0x0b4a0, 0x0baa4, 0x0ad50, 0x055d9, 0x04ba0, 0x0a5b0, 0x15176, 0x052b0, 0x0a930,
+            // 2020 - 2029
+            0x07954, 0x06aa0, 0x0ad50, 0x05b52, 0x04b60, 0x0a6e6, 0x0a4e0, 0x0d260, 0x0ea65, 0x0d530,
+            // 2030 - 2039
+            0x05aa0, 0x076a3, 0x096d0, 0x04afb, 0x04ad0, 0x0a4d0, 0x1d0b6, 0x0d250, 0x0d520, 0x0dd45,
+            // 2040 - 2049
+            0x0b5a0, 0x056d0, 0x055b2, 0x049b0, 0x0a577, 0x0a4b0, 0x0aa50, 0x1b255, 0x06d20, 0x0ada0,
+            // 2050 - 2059
+            0x14b63, 0x09370, 0x049f8, 0x04970, 0x064b0, 0x168a6, 0x0ea50, 0x06aa0, 0x1a6c4, 0x0aae0,
+            // 2060 - 2069
+            0x092e0, 0x0d2e3, 0x0c960, 0x0d557, 0x0d4a0, 0x0da50, 0x05d55, 0x056a0, 0x0a6d0, 0x055d4,
+            // 2070 - 2079
+            0x052d0, 0x0a9b8, 0x0a950, 0x0b4a0, 0x0b6a6, 0x0ad50, 0x055a0, 0x0aba4, 0x0a5b0, 0x052b0,
+            // 2080 - 2089
+            0x0b273, 0x06930, 0x07337, 0x06aa0, 0x0ad50, 0x14b55, 0x04b60, 0x0a570, 0x054e4, 0x0d160,
+            // 2090 - 2099
+            0x0e968, 0x0d520, 0x0daa0, 0x16aa6, 0x056d0, 0x04ae0, 0x0a9d4, 0x0a2d0, 0x0d150, 0x0f252,
+            // 2100
+            0x0d520
+        ];
+        return $lunarInfo;
+    }
+}
+
+/**
+ * Menghitung Shio, Elemen, dan Nama Siklus Jiazi 60-tahunan.
+ *
+ * @param int $lunarYear Tahun Imlek (Kongzi era, misal 2577, atau ekuivalen Masehi misal 2026)
+ * @return array
+ */
+if (!function_exists('getChineseZodiacYear')) {
+    function getChineseZodiacYear($lunarYear) {
+        $solarYear = ($lunarYear > 2200) ? ($lunarYear - 551) : $lunarYear;
+        $offset = $solarYear - 4;
+        $stemIdx = ($offset % 10 + 10) % 10;
+        $branchIdx = ($offset % 12 + 12) % 12;
+
+        $stems = ['Jia', 'Yi', 'Bing', 'Ding', 'Wu', 'Ji', 'Geng', 'Xin', 'Ren', 'Gui'];
+        $branches = ['Tikus', 'Kerbau', 'Macan', 'Kelinci', 'Naga', 'Ular', 'Kuda', 'Kambing', 'Monyet', 'Ayam', 'Anjing', 'Babi'];
+        $branchNames = ['Zi', 'Chou', 'Yin', 'Mao', 'Chen', 'Si', 'Wu', 'Wei', 'Shen', 'You', 'Xu', 'Hai'];
+        $elements = ['Kayu', 'Kayu', 'Api', 'Api', 'Tanah', 'Tanah', 'Logam', 'Logam', 'Air', 'Air'];
+
+        $shio = $branches[$branchIdx];
+        $elemen = $elements[$stemIdx];
+        $jiazi = $stems[$stemIdx] . ' ' . $branchNames[$branchIdx];
+        $namaTahun = "{$shio} {$elemen} ({$jiazi})";
+
+        return [
+            'shio'        => $shio,
+            'elemen'      => $elemen,
+            'nama_tahun'  => $namaTahun,
+            'stem'        => $stems[$stemIdx],
+            'branch'      => $branches[$branchIdx],
+            'stem_index'  => $stemIdx,
+            'branch_index'=> $branchIdx
+        ];
+    }
+}
+
+/**
+ * Konversi Penanggalan Masehi ke Lunisolar Cina (Imlek).
+ * Mendukung rentang tahun 1900 hingga 2100.
+ *
+ * @param int $year Tahun Masehi (1900-2100)
+ * @param int $month Bulan Masehi (1-12)
+ * @param int $day Tanggal Masehi (1-31)
+ * @return array|null
+ */
+if (!function_exists('getChineseLunisolarDate')) {
+    function getChineseLunisolarDate($year, $month, $day) {
+        if ($year < 1900 || $year > 2100) {
+            return null;
+        }
+
+        $lunarInfo = getChineseLunarInfo();
+
+        try {
+            $base = new DateTime('1900-01-31', new DateTimeZone('UTC'));
+            $target = new DateTime(sprintf('%04d-%02d-%02d', $year, $month, $day), new DateTimeZone('UTC'));
+        } catch (Exception $e) {
+            return null;
+        }
+
+        $diff = $base->diff($target);
+        $offset = (int)$diff->format('%r%a');
+
+        if ($offset < 0) {
+            return null;
+        }
+
+        $lYearDays = function($info) {
+            $sum = 348;
+            for ($i = 0x8000; $i > 0x8; $i >>= 1) {
+                $sum += ($info & $i) ? 1 : 0;
+            }
+            if ($info & 0xf) {
+                $sum += ($info & 0x10000) ? 30 : 29;
+            }
+            return $sum;
+        };
+
+        $lunarYear = 1900;
+        $daysInYear = 0;
+        for ($i = 1900; $i <= 2100 && $offset > 0; $i++) {
+            $daysInYear = $lYearDays($lunarInfo[$i - 1900]);
+            $offset -= $daysInYear;
+            $lunarYear++;
+        }
+
+        if ($offset < 0) {
+            $offset += $daysInYear;
+            $lunarYear--;
+        }
+
+        if ($lunarYear > 2100) {
+            return null;
+        }
+
+        $info = $lunarInfo[$lunarYear - 1900];
+        $leap = $info & 0xf;
+        $isLeap = false;
+        $lunarMonth = 1;
+
+        for ($m = 1; $m <= 12 && $offset >= 0; $m++) {
+            // Jumlah hari bulan reguler $m
+            $daysInMonth = ($info & (0x10000 >> $m)) ? 30 : 29;
+            if ($offset < $daysInMonth) {
+                $lunarMonth = $m;
+                $isLeap = false;
+                break;
+            }
+            $offset -= $daysInMonth;
+
+            // Jika bulan $m memiliki bulan kabisat setelahnya
+            if ($leap === $m) {
+                $daysInLeap = ($info & 0x10000) ? 30 : 29;
+                if ($offset < $daysInLeap) {
+                    $lunarMonth = $m;
+                    $isLeap = true;
+                    break;
+                }
+                $offset -= $daysInLeap;
+            }
+        }
+
+        $lunarDay = $offset + 1;
+        $kongziYear = $lunarYear + 551;
+
+        $monthNames = [
+            1 => 'Cia Gwe', 2 => 'Ji Gwe', 3 => 'Sa Gwe', 4 => 'Si Gwe',
+            5 => 'Go Gwe', 6 => 'Lak Gwe', 7 => 'Tjit Gwe', 8 => 'Peh Gwe',
+            9 => 'Kauw Gwe', 10 => 'Cap Gwe', 11 => 'Cap It Gwe', 12 => 'Cap Ji Gwe'
+        ];
+
+        $dayNames = [
+            1 => 'Ce It', 2 => 'Ce Ji', 3 => 'Ce Sa', 4 => 'Ce Si', 5 => 'Ce Go',
+            6 => 'Ce Lak', 7 => 'Ce Tjit', 8 => 'Ce Peh', 9 => 'Ce Kauw', 10 => 'Ce Cap',
+            11 => 'Cap It', 12 => 'Cap Ji', 13 => 'Cap Sa', 14 => 'Cap Si', 15 => 'Cap Go',
+            16 => 'Cap Lak', 17 => 'Cap Tjit', 18 => 'Cap Peh', 19 => 'Cap Kauw', 20 => 'Ji Cap',
+            21 => 'Ji It', 22 => 'Ji Ji', 23 => 'Ji Sa', 24 => 'Ji Si', 25 => 'Ji Go',
+            26 => 'Ji Lak', 27 => 'Ji Tjit', 28 => 'Ji Peh', 29 => 'Ji Kauw', 30 => 'Sa Cap'
+        ];
+
+        $zodiac = getChineseZodiacYear($kongziYear);
+        $mName = ($isLeap ? 'Kabisat ' : '') . ($monthNames[$lunarMonth] ?? "Bulan {$lunarMonth}");
+        $dName = $dayNames[$lunarDay] ?? (string)$lunarDay;
+        $formatted = "{$lunarDay} {$mName} {$kongziYear}";
+
+        return [
+            'year'             => $kongziYear,
+            'solar_lunar_year' => $lunarYear,
+            'month'            => $lunarMonth,
+            'day'              => $lunarDay,
+            'month_name'       => $mName,
+            'day_name'         => $dName,
+            'is_leap'          => $isLeap,
+            'shio'             => $zodiac['shio'],
+            'elemen'           => $zodiac['elemen'],
+            'nama_tahun'       => $zodiac['nama_tahun'],
+            'formatted'        => $formatted
+        ];
+    }
+}
